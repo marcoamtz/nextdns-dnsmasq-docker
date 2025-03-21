@@ -35,7 +35,7 @@ start_nextdns() {
     echo "NextDNS started with PID: $NEXTDNS_PID"
 }
 
-# Function to start dnsmasq with optimized settings
+# Function to start dnsmasq
 start_dnsmasq() {
     echo "Starting dnsmasq..."
     # Run dnsmasq
@@ -52,18 +52,18 @@ start_dnsmasq
 # Monitor and restart processes with improved reliability
 echo "Monitoring services..."
 while true; do
-    # Check NextDNS with better error handling
+    # Check NextDNS
     if ! kill -0 $NEXTDNS_PID 2>/dev/null; then
         echo "$(date): NextDNS process died, restarting..."
         start_nextdns
     fi
 
-    # Check dnsmasq with better error handling
+    # Check dnsmasq
     if ! kill -0 $DNSMASQ_PID 2>/dev/null; then
         echo "$(date): dnsmasq process died, restarting..."
         start_dnsmasq
     fi
 
     # Adaptive sleep - use higher interval for better CPU efficiency
-    sleep 15
+    sleep 20
 done

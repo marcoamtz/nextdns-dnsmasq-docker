@@ -1,4 +1,4 @@
-# NextDNS with dnsmasq Docker Container
+# NextDNS with DNSMasq Docker Container
 
 A Docker container that runs both NextDNS and dnsmasq services together, providing DNS resolution with NextDNS filtering capabilities and the caching/forwarding benefits of dnsmasq.
 
@@ -116,6 +116,14 @@ git clone https://github.com/marcoamtz/nextdns-dnsmasq-docker.git
 cd nextdns-dnsmasq-docker
 docker build -t nextdns-dnsmasq .
 ```
+
+## Technical Notes
+
+- **Compiled from Source**: DNSMasq is compiled from source rather than installed from package repositories, ensuring the latest version with all fixes.
+
+- **Multi-stage Build**: Uses Docker multi-stage build to separate the build environment from the runtime environment, resulting in a much smaller final image.
+
+- **Source Verification**: PGP signature verification ensures the DNSMasq source code is authentic and has not been tampered with.
 
 ## License
 
