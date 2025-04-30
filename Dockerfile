@@ -3,11 +3,12 @@ FROM alpine:3.21
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.5"
+    version="0.0.6"
 
 # Set environment variables
 ENV NEXTDNS_ARGUMENTS="-listen :5053 -report-client-info -log-queries -cache-size 10MB" \
-    NEXTDNS_ID=abcdef
+    NEXTDNS_ID=abcdef \
+    LOG_DIR=/logs
 
 # Install runtime dependencies
 RUN set -ex && \
@@ -22,11 +23,12 @@ RUN set -ex && \
     apk --no-cache add \
         nextdns \
         ca-certificates \
-        tini && \
+        tini \
+        logrotate && \
     # Install dnsmasq from edge repository
     apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq && \
     # Create necessary directories
-    mkdir -p /etc/dnsmasq.d && \
+    mkdir -p /etc/dnsmasq.d ${LOG_DIR} && \
     # Cleanup
     rm -rf /var/cache/apk/* /tmp/* && \
     # Verify installations
@@ -36,9 +38,13 @@ RUN set -ex && \
 # Copy configurations
 COPY dnsmasq.conf /etc/dnsmasq.conf
 COPY --chmod=755 startup.sh /startup.sh
+COPY --chmod=755 create-logrotate-conf.sh /create-logrotate-conf.sh
 
 # Expose DNS ports
 EXPOSE 53/tcp 53/udp
+
+# Volume for logs
+VOLUME ${LOG_DIR}
 
 # More efficient health check - use nc for faster response
 HEALTHCHECK --interval=60s --timeout=2s --start-period=5s --retries=3 \

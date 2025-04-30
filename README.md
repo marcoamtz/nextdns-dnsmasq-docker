@@ -1,6 +1,13 @@
 # NextDNS with DNSMasq Docker Container
 
-A Docker container that runs both NextDNS and dnsmasq services together, providing DNS resolution with NextDNS filtering capabilities and the caching/forwarding benefits of dnsmasq.
+A Docker container running NextDNS with DNSMasq as a proxy.
+
+## Features
+
+- NextDNS client with DNSMasq proxy
+- External logging with automatic rotation (logs rotate at 10MB)
+- Automatic service monitoring and restart
+- DHCP server functionality (optional)
 
 ## Overview
 
@@ -10,6 +17,7 @@ This container:
 - Runs dnsmasq as a local DNS server and DHCP server
 - Automatically monitors and restarts either service if they crash
 - Exposes DNS services on port 53 (TCP/UDP)
+- Writes logs to an external volume with automatic rotation
 
 The inclusion of dnsmasq alongside NextDNS is to provide DHCP server functionality, allowing this container to serve as a complete network solution for DNS filtering and IP address management.
 
@@ -25,22 +33,16 @@ The inclusion of dnsmasq alongside NextDNS is to provide DHCP server functionali
 ```bash
 docker run -d \
   --name nextdns-dnsmasq \
-  -e NEXTDNS_ID=abc123 \
-  -e NEXTDNS_ARGUMENTS="-report-client-info -cache-size 10MB -log-queries" \
-  -p 53:53/udp \
   -p 53:53/tcp \
+  -p 53:53/udp \
+  -e NEXTDNS_ID=yourConfigID \
+  -e NEXTDNS_ARGUMENTS="-report-client-info -cache-size 10MB -log-queries" \
+  -v /path/to/your/logs:/logs \
   -v /path/to/custom/dnsmasq/config:/etc/dnsmasq.d \
   --cap-add NET_ADMIN \
   --restart unless-stopped \
   marcoamtz/nextdns-dnsmasq:latest
 ```
-
-### Environment Variables
-
-| Variable            | Required | Description                                     |
-| ------------------- | -------- | ----------------------------------------------- |
-| `NEXTDNS_ID`        | Yes      | Your NextDNS configuration ID                   |
-| `NEXTDNS_ARGUMENTS` | No       | Additional arguments to pass to the NextDNS CLI |
 
 ### Docker Compose Example
 
@@ -59,6 +61,7 @@ services:
       - "53:53/tcp"
     volumes:
       - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
+      - /path/to/your/logs:/logs
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
@@ -83,10 +86,31 @@ services:
       - NEXTDNS_ARGUMENTS=-report-client-info -cache-size 10MB -log-queries
     volumes:
       - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
+      - /path/to/your/logs:/logs
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
 ```
+
+## Environment Variables
+
+- `NEXTDNS_ID`: Your NextDNS configuration ID (required)
+- `NEXTDNS_ARGUMENTS`: Arguments to pass to the NextDNS client (default: `-listen :5053 -report-client-info -log-queries -cache-size 10MB`)
+- `LOG_DIR`: Directory where logs will be stored (default: `/logs`)
+
+## Logs
+
+Logs are written to the volume mounted at `/logs`:
+
+- NextDNS logs: `/logs/nextdns.log`
+- DNSMasq logs: `/logs/dnsmasq.log`
+
+Logs are automatically rotated when they reach 10MB using logrotate with the following settings:
+
+- Rotates when files reach 10MB
+- Keeps 3 rotated files
+- Uses compression for rotated logs
+- Uses copytruncate to handle rotation without interrupting services
 
 ## How It Works
 
@@ -95,6 +119,7 @@ The container runs both NextDNS and dnsmasq services:
 1. NextDNS connects to NextDNS servers using your configuration ID, providing DNS filtering
 2. dnsmasq provides DHCP server functionality for network clients, as well as caching and local DNS resolution
 3. A monitoring process ensures both services remain running and restarts them if needed
+4. Logs are written to external files and automatically rotated when they reach 10MB
 
 ### DHCP Configuration
 
