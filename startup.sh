@@ -37,7 +37,8 @@ chmod 755 "${LOG_DIR}"
 
 # Function to start NextDNS
 start_nextdns() {
-    echo "Starting NextDNS with config ${NEXTDNS_ID}..."
+    NEXTDNS_VERSION=$(nextdns version 2>/dev/null | awk '{print $NF}' || echo "unknown")
+    echo "Starting NextDNS version ${NEXTDNS_VERSION}..."
     nextdns run ${NEXTDNS_ARGUMENTS} -log-queries -config ${NEXTDNS_ID} > "${LOG_DIR}/nextdns.log" 2>&1 &
     NEXTDNS_PID=$!
     echo "NextDNS started with PID: $NEXTDNS_PID"
@@ -45,7 +46,8 @@ start_nextdns() {
 
 # Function to start dnsmasq
 start_dnsmasq() {
-    echo "Starting dnsmasq..."
+    DNSMASQ_VERSION=$(dnsmasq --version 2>/dev/null | head -n1 | awk '{print $3}' || echo "unknown")
+    echo "Starting dnsmasq version ${DNSMASQ_VERSION}..."
     # Run dnsmasq with logging enabled
     dnsmasq -k --log-facility="${LOG_DIR}/dnsmasq.log" &
     DNSMASQ_PID=$!

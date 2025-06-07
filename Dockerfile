@@ -1,9 +1,9 @@
-FROM alpine:3.21
+FROM alpine:3.22
 
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.6"
+    version="0.0.7"
 
 # Set environment variables
 ENV NEXTDNS_ARGUMENTS="-listen :5053 -report-client-info -log-queries -cache-size 10MB" \
@@ -16,7 +16,7 @@ RUN set -ex && \
     wget -qO /etc/apk/keys/nextdns.pub https://repo.nextdns.io/nextdns.pub && \
     echo "https://repo.nextdns.io/apk" >> /etc/apk/repositories && \
     # Add Alpine edge repository
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
+    # echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
     # Update and install packages
     apk update && \
     # Install nextdns and other packages
@@ -25,8 +25,10 @@ RUN set -ex && \
         ca-certificates \
         tini \
         logrotate && \
+    # Install dnsmasq regular repository
+    apk --no-cache add dnsmasq && \
     # Install dnsmasq from edge repository
-    apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq && \
+    # apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq && \
     # Create necessary directories
     mkdir -p /etc/dnsmasq.d ${LOG_DIR} && \
     # Cleanup
