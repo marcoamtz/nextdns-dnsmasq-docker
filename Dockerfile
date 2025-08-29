@@ -1,9 +1,17 @@
 FROM alpine:3.22
 
+# Version arguments for main components
+# NextDNS: Version from nextdns.io repository (no Alpine suffix)
+ARG NEXTDNS_VERSION="1.46.0"
+# DNSMasq: Version from Alpine repository (includes -r0 suffix)
+ARG DNSMASQ_VERSION="2.91-r0"
+
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.7"
+    version="0.0.9" \
+    nextdns.version="${NEXTDNS_VERSION}" \
+    dnsmasq.version="${DNSMASQ_VERSION}"
 
 # Set environment variables
 ENV NEXTDNS_ARGUMENTS="-listen :5053 -report-client-info -log-queries -cache-size 10MB" \
@@ -21,14 +29,14 @@ RUN set -ex && \
     apk update && \
     # Install nextdns and other packages
     apk --no-cache add \
-        nextdns \
+        nextdns=${NEXTDNS_VERSION} \
         ca-certificates \
         tini \
         logrotate && \
     # Install dnsmasq regular repository
-    apk --no-cache add dnsmasq && \
+    apk --no-cache add dnsmasq=${DNSMASQ_VERSION} && \
     # Install dnsmasq from edge repository
-    # apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq && \
+    # apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq=${DNSMASQ_VERSION} && \
     # Create necessary directories
     mkdir -p /etc/dnsmasq.d ${LOG_DIR} && \
     # Cleanup
@@ -42,15 +50,15 @@ COPY dnsmasq.conf /etc/dnsmasq.conf
 COPY --chmod=755 startup.sh /startup.sh
 COPY --chmod=755 create-logrotate-conf.sh /create-logrotate-conf.sh
 
-# Expose DNS ports
-EXPOSE 53/tcp 53/udp
+# Expose DNS and DHCP ports
+EXPOSE 53/tcp 53/udp 67/udp
 
 # Volume for logs
 VOLUME ${LOG_DIR}
 
-# More efficient health check - use nc for faster response
-HEALTHCHECK --interval=60s --timeout=2s --start-period=5s --retries=3 \
-    CMD nc -zu localhost 53 || exit 1
+# Enhanced health check - test both connectivity and DNS resolution
+HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
+    CMD nc -zu localhost 53 && nslookup localhost 127.0.0.1 > /dev/null || exit 1
 
 # Use tini as init with proper signal handling
 ENTRYPOINT ["/sbin/tini", "-g", "--"]

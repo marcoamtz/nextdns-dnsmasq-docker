@@ -5,9 +5,12 @@ A Docker container running NextDNS with DNSMasq as a proxy.
 ## Features
 
 - NextDNS client with DNSMasq proxy
+- **Version pinning** for reproducible builds and controlled updates
 - External logging with automatic rotation (logs rotate at 10MB)
-- Automatic service monitoring and restart
+- Automatic service monitoring and restart with enhanced health checks
 - DHCP server functionality (optional)
+- **Alpine-based** for minimal size (~5MB base image)
+- Proper signal handling and process management with tini
 
 ## Overview
 
@@ -16,7 +19,8 @@ This container:
 - Runs the NextDNS CLI client with your configuration ID
 - Runs dnsmasq as a local DNS server and DHCP server
 - Automatically monitors and restarts either service if they crash
-- Exposes DNS services on port 53 (TCP/UDP)
+- Exposes DNS services on port 53 (TCP/UDP) and DHCP on port 67 (UDP)
+- Uses **pinned versions** for NextDNS (v1.46.0) and DNSMasq (v2.91)
 - Writes logs to an external volume with automatic rotation
 
 The inclusion of dnsmasq alongside NextDNS is to provide DHCP server functionality, allowing this container to serve as a complete network solution for DNS filtering and IP address management.
@@ -35,6 +39,7 @@ docker run -d \
   --name nextdns-dnsmasq \
   -p 53:53/tcp \
   -p 53:53/udp \
+  -p 67:67/udp \
   -e NEXTDNS_ID=yourConfigID \
   -e NEXTDNS_ARGUMENTS="-report-client-info -cache-size 10MB -log-queries" \
   -v /path/to/your/logs:/logs \
@@ -59,6 +64,7 @@ services:
     ports:
       - "53:53/udp"
       - "53:53/tcp"
+      - "67:67/udp"
     volumes:
       - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
       - /path/to/your/logs:/logs
@@ -69,9 +75,9 @@ services:
 
 > **Note on NET_ADMIN capability**: The `NET_ADMIN` capability grants the container permissions to perform network-related operations. When using host networking, this capability is required for proper functionality. When using port mapping (as in the example above), it's recommended but not strictly required for basic operation, as Docker handles the port forwarding. However, some advanced functionality of NextDNS or dnsmasq might still benefit from these permissions.
 
-### Alternative: Using Host Network
+### Alternative: Using Host Network (Recommended for Homelab)
 
-If you prefer host networking for potentially better performance and DHCP capabilities:
+For better performance and full DHCP functionality in homelab environments:
 
 ```yaml
 version: "3"
@@ -91,6 +97,13 @@ services:
       - NET_ADMIN
     restart: unless-stopped
 ```
+
+**Benefits of host networking for DNS/DHCP:**
+
+- ✅ Better performance for network services
+- ✅ DHCP broadcasts work correctly
+- ✅ No port mapping complexity
+- ✅ Direct network interface access
 
 ## Environment Variables
 
@@ -132,7 +145,28 @@ dhcp-option=option:router,192.168.1.1
 dhcp-option=option:dns-server,192.168.1.1
 ```
 
-## Building the Container
+## Version Management
+
+This container uses **version pinning** to ensure reproducible builds. Software versions are controlled via ARG variables in the Dockerfile:
+
+- **NextDNS**: `1.46.0` (from nextdns.io repository)
+- **DNSMasq**: `2.91-r0` (from Alpine repository)
+
+### Building with Custom Versions
+
+```bash
+# Standard build with pinned versions
+docker build -t nextdns-dnsmasq .
+
+# Build with custom versions
+docker build \
+  --build-arg NEXTDNS_VERSION=1.46.0 \
+  --build-arg DNSMASQ_VERSION=2.91-r0 \
+  --no-cache \
+  -t nextdns-dnsmasq .
+```
+
+### Building the Container
 
 To build the container yourself:
 
@@ -144,11 +178,13 @@ docker build -t nextdns-dnsmasq .
 
 ## Technical Notes
 
-- **Compiled from Source**: DNSMasq is compiled from source rather than installed from package repositories, ensuring the latest version with all fixes.
-
-- **Multi-stage Build**: Uses Docker multi-stage build to separate the build environment from the runtime environment, resulting in a much smaller final image.
-
-- **Source Verification**: PGP signature verification ensures the DNSMasq source code is authentic and has not been tampered with.
+- **Alpine-based**: Uses Alpine Linux 3.22 as base for minimal size (~5MB) and security
+- **Version Pinning**: Both NextDNS and DNSMasq versions are explicitly pinned for reproducible builds
+- **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
+- **Process Management**: Uses tini as PID 1 for proper signal handling and zombie process reaping
+- **Self-Healing**: Automatic monitoring and restart of DNS/DHCP services if they crash
+- **Optimized Logging**: Structured logging with automatic rotation and compression
+- **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
 
 ## License
 

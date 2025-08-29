@@ -1,8 +1,13 @@
 #!/bin/sh
+set -e  # Exit on error
+
 # Create proper logrotate configuration using environment variables
 
 # Ensure LOG_DIR is set
 : "${LOG_DIR:=/logs}"
+
+# Ensure logrotate directory exists
+mkdir -p /etc/logrotate.d
 
 # Create logrotate config
 cat > /etc/logrotate.d/dns-logs << EOF
