@@ -1,4 +1,4 @@
-FROM alpine:3.22
+FROM alpine:3.22.2
 
 # Version arguments for main components
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
@@ -9,7 +9,7 @@ ARG DNSMASQ_VERSION="2.91-r0"
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.9" \
+    version="0.0.10" \
     nextdns.version="${NEXTDNS_VERSION}" \
     dnsmasq.version="${DNSMASQ_VERSION}"
 

@@ -178,7 +178,7 @@ docker build -t nextdns-dnsmasq .
 
 ## Technical Notes
 
-- **Alpine-based**: Uses Alpine Linux 3.22 as base for minimal size (~5MB) and security
+- **Alpine-based**: Uses Alpine Linux as base for minimal size (~5MB) and security
 - **Version Pinning**: Both NextDNS and DNSMasq versions are explicitly pinned for reproducible builds
 - **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
 - **Process Management**: Uses tini as PID 1 for proper signal handling and zombie process reaping
