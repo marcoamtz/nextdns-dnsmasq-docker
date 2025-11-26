@@ -1,0 +1,17 @@
+services:
+  nextdns-dnsmasq:
+    build: .
+    # Or use pre-built image:
+    # image: marcoamtz/nextdns-dnsmasq:latest
+    container_name: nextdns-dnsmasq
+    network_mode: host
+    environment:
+      - NEXTDNS_ID=${NEXTDNS_ID}
+      - NEXTDNS_ARGUMENTS=${NEXTDNS_ARGUMENTS:--report-client-info -cache-size 10MB -log-queries}
+    volumes:
+      - ./config:/etc/dnsmasq.d
+      - ./logs:/logs
+      - ./dhcp-leases:/dhcp-leases
+    cap_add:
+      - NET_ADMIN
+    restart: unless-stopped

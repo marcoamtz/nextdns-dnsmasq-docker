@@ -50,55 +50,41 @@ docker run -d \
   marcoamtz/nextdns-dnsmasq:latest
 ```
 
-### Docker Compose Example
+### Docker Compose (Recommended)
+
+A `docker-compose.yml` is included in this repository. To get started:
+
+1. Copy the example environment file and add your NextDNS configuration:
+
+```bash
+cp .env.example .env
+# Edit .env and set your NEXTDNS_ID
+```
+
+2. Create the required directories:
+
+```bash
+mkdir -p config logs dhcp-leases
+```
+
+3. Start the container:
+
+```bash
+docker compose up -d
+```
+
+The included compose file uses host networking (recommended for homelab DNS/DHCP). To use port mapping instead, modify `docker-compose.yml`:
 
 ```yaml
-version: "3"
-
 services:
   nextdns-dnsmasq:
-    image: marcoamtz/nextdns-dnsmasq:latest
-    container_name: nextdns-dnsmasq
-    environment:
-      - NEXTDNS_ID=abc123
-      - NEXTDNS_ARGUMENTS=-report-client-info -cache-size 10MB -log-queries
+    # Remove this line:
+    # network_mode: host
+    # Add port mappings:
     ports:
       - "53:53/udp"
       - "53:53/tcp"
       - "67:67/udp"
-    volumes:
-      - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
-      - /path/to/your/logs:/logs
-      - /path/to/dhcp-leases:/dhcp-leases
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
-```
-
-> **Note on NET_ADMIN capability**: The `NET_ADMIN` capability grants the container permissions to perform network-related operations. When using host networking, this capability is required for proper functionality. When using port mapping (as in the example above), it's recommended but not strictly required for basic operation, as Docker handles the port forwarding. However, some advanced functionality of NextDNS or dnsmasq might still benefit from these permissions.
-
-### Alternative: Using Host Network (Recommended for Homelab)
-
-For better performance and full DHCP functionality in homelab environments:
-
-```yaml
-version: "3"
-
-services:
-  nextdns-dnsmasq:
-    image: marcoamtz/nextdns-dnsmasq:latest
-    container_name: nextdns-dnsmasq
-    network_mode: host
-    environment:
-      - NEXTDNS_ID=abc123
-      - NEXTDNS_ARGUMENTS=-report-client-info -cache-size 10MB -log-queries
-    volumes:
-      - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
-      - /path/to/your/logs:/logs
-      - /path/to/dhcp-leases:/dhcp-leases
-    cap_add:
-      - NET_ADMIN
-    restart: unless-stopped
 ```
 
 **Benefits of host networking for DNS/DHCP:**
@@ -107,6 +93,8 @@ services:
 - ✅ DHCP broadcasts work correctly
 - ✅ No port mapping complexity
 - ✅ Direct network interface access
+
+> **Note on NET_ADMIN capability**: The `NET_ADMIN` capability grants the container permissions to perform network-related operations. Required for host networking and recommended for port mapping mode.
 
 ## Environment Variables
 
@@ -132,10 +120,15 @@ Logs are automatically rotated when they reach 10MB using logrotate with the fol
 
 The container runs both NextDNS and dnsmasq services:
 
-1. NextDNS connects to NextDNS servers using your configuration ID, providing DNS filtering
-2. dnsmasq provides DHCP server functionality for network clients, as well as caching and local DNS resolution
-3. A monitoring process ensures both services remain running and restarts them if needed
-4. Logs are written to external files and automatically rotated when they reach 10MB
+```
+Client → dnsmasq (port 53) → NextDNS (port 5053) → NextDNS Cloud
+```
+
+1. **dnsmasq** listens on port 53 and forwards all DNS queries to NextDNS
+2. **NextDNS** connects to NextDNS servers using your configuration ID, providing DNS filtering and privacy
+3. **dnsmasq** also provides DHCP server functionality (optional) for IP address management
+4. A monitoring process ensures both services remain running and restarts them if needed
+5. Logs are written to external files and automatically rotated when they reach 10MB
 
 ### DHCP Configuration
 
