@@ -32,13 +32,15 @@ RUN set -ex && \
         nextdns=${NEXTDNS_VERSION} \
         ca-certificates \
         tini \
-        logrotate && \
-    # Install dnsmasq regular repository
+        logrotate \
+        su-exec && \
+    # Install dnsmasq regular repository (creates 'dnsmasq' user/group)
     apk --no-cache add dnsmasq=${DNSMASQ_VERSION} && \
     # Install dnsmasq from edge repository
     # apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq=${DNSMASQ_VERSION} && \
-    # Create necessary directories
+    # Create necessary directories with proper ownership (use dnsmasq user from package)
     mkdir -p /etc/dnsmasq.d ${LOG_DIR} /dhcp-leases && \
+    chown dnsmasq:dnsmasq ${LOG_DIR} /dhcp-leases && \
     # Cleanup
     rm -rf /var/cache/apk/* /tmp/* && \
     # Verify installations

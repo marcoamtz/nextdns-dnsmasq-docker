@@ -25,21 +25,18 @@ if [ -z "${NEXTDNS_ID}" ]; then
     exit 1
 fi
 
-# Check for privileged ports access
-if ! grep -q "53" /proc/sys/net/ipv4/ip_local_port_range 2>/dev/null; then
-    echo "Note: Running with privileged port 53 access (root)"
-fi
+# Set permissions on volume directories
+chown dnsmasq:dnsmasq "${LOG_DIR}" /dhcp-leases
+chmod 755 "${LOG_DIR}" /dhcp-leases
 
-# Ensure log directory exists and create logrotate configuration
-mkdir -p "${LOG_DIR}"
-chmod 755 "${LOG_DIR}"
+# Create logrotate configuration
 /create-logrotate-conf.sh
 
 # Function to start NextDNS
 start_nextdns() {
     NEXTDNS_VERSION=$(nextdns version 2>/dev/null | awk '{print $NF}' || echo "unknown")
     echo "Starting NextDNS version ${NEXTDNS_VERSION}..."
-    nextdns run ${NEXTDNS_ARGUMENTS} -log-queries -config ${NEXTDNS_ID} > "${LOG_DIR}/nextdns.log" 2>&1 &
+    su-exec dnsmasq nextdns run ${NEXTDNS_ARGUMENTS} -log-queries -config ${NEXTDNS_ID} > "${LOG_DIR}/nextdns.log" 2>&1 &
     NEXTDNS_PID=$!
     echo "NextDNS started with PID: $NEXTDNS_PID"
 }
@@ -48,7 +45,6 @@ start_nextdns() {
 start_dnsmasq() {
     DNSMASQ_VERSION=$(dnsmasq --version 2>/dev/null | head -n1 | awk '{print $3}' || echo "unknown")
     echo "Starting dnsmasq version ${DNSMASQ_VERSION}..."
-    # Run dnsmasq with logging enabled
     dnsmasq -k --log-facility="${LOG_DIR}/dnsmasq.log" &
     DNSMASQ_PID=$!
     echo "dnsmasq started with PID: $DNSMASQ_PID"
@@ -68,7 +64,7 @@ start_logrotate() {
 }
 
 # Initial service start
-echo "Starting DNS services as root user..."
+echo "Starting DNS services with privilege separation..."
 start_nextdns
 start_dnsmasq
 start_logrotate

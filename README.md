@@ -193,11 +193,23 @@ docker build -t nextdns-dnsmasq .
 
 - **Alpine-based**: Uses Alpine Linux as base for minimal size (~5MB) and security
 - **Version Pinning**: Both NextDNS and DNSMasq versions are explicitly pinned for reproducible builds
+- **Privilege Separation**: Services run as non-root user `dnsmasq` where possible (see Security section below)
 - **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
 - **Process Management**: Uses tini as PID 1 for proper signal handling and zombie process reaping
 - **Self-Healing**: Automatic monitoring and restart of DNS/DHCP services if they crash
 - **Optimized Logging**: Structured logging with automatic rotation and compression
 - **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
+
+## Security
+
+This container implements privilege separation to minimize the attack surface:
+
+- **NextDNS**: Runs entirely as non-root user `dnsmasq` (binds to unprivileged port 5053)
+- **dnsmasq**: Starts as root to bind to privileged port 53, then immediately drops privileges to user `dnsmasq`
+- **Package-provided user**: Uses the `dnsmasq` user/group created by Alpine's dnsmasq package
+- **Minimal permissions**: Log and DHCP lease directories are owned by the `dnsmasq` user
+
+This approach follows the principle of least privilege while maintaining the ability to bind to privileged DNS port 53.
 
 ## License
 
