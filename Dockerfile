@@ -85,7 +85,7 @@ VOLUME /dhcp-leases
 
 # Enhanced health check - test both connectivity and DNS resolution
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD nc -zu localhost 53 && nslookup localhost 127.0.0.1 > /dev/null || exit 1
+    CMD nc -z localhost 53 && nslookup localhost 127.0.0.1 > /dev/null || exit 1
 
 # s6-overlay entrypoint
 ENTRYPOINT ["/init"]
