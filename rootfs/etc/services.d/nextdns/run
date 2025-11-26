@@ -1,0 +1,11 @@
+#!/command/with-contenv sh
+# NextDNS service - runs as non-root user
+
+NEXTDNS_VERSION=$(nextdns version 2>/dev/null | awk '{print $NF}' || echo "unknown")
+echo "Starting NextDNS version ${NEXTDNS_VERSION}..."
+
+exec s6-setuidgid dnsmasq nextdns run \
+    ${NEXTDNS_ARGUMENTS} \
+    -log-queries \
+    -config ${NEXTDNS_ID} \
+    > "${LOG_DIR}/nextdns.log" 2>&1

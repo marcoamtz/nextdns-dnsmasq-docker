@@ -1,0 +1,17 @@
+#!/command/with-contenv sh
+# Initialization script - runs once at container startup
+
+# Validate environment variables
+if [ -z "${NEXTDNS_ID}" ] || [ "${NEXTDNS_ID}" = "abcdef" ]; then
+    echo "Error: NEXTDNS_ID not set or using default value"
+    exit 1
+fi
+
+# Set permissions on volume directories
+chown dnsmasq:dnsmasq "${LOG_DIR}" /dhcp-leases
+chmod 755 "${LOG_DIR}" /dhcp-leases
+
+# Create logrotate configuration
+/create-logrotate-conf.sh
+
+echo "Initialization complete"

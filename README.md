@@ -9,8 +9,8 @@ A Docker container running NextDNS with DNSMasq as a proxy.
 - External logging with automatic rotation (logs rotate at 10MB)
 - Automatic service monitoring and restart with enhanced health checks
 - DHCP server functionality (optional)
-- **Alpine-based** for minimal size (~5MB base image)
-- Proper signal handling and process management with tini
+- **Alpine-based** for minimal size
+- **s6-overlay** for proper process supervision with instant restarts
 
 ## Overview
 
@@ -18,7 +18,7 @@ This container:
 
 - Runs the NextDNS CLI client with your configuration ID
 - Runs dnsmasq as a local DNS server and DHCP server
-- Automatically monitors and restarts either service if they crash
+- Uses s6-overlay for instant service restarts if they crash
 - Exposes DNS services on port 53 (TCP/UDP) and DHCP on port 67 (UDP)
 - Uses **pinned versions** for NextDNS (v1.46.0) and DNSMasq (v2.91)
 - Writes logs to an external volume with automatic rotation
@@ -127,7 +127,7 @@ Client → dnsmasq (port 53) → NextDNS (port 5053) → NextDNS Cloud
 1. **dnsmasq** listens on port 53 and forwards all DNS queries to NextDNS
 2. **NextDNS** connects to NextDNS servers using your configuration ID, providing DNS filtering and privacy
 3. **dnsmasq** also provides DHCP server functionality (optional) for IP address management
-4. A monitoring process ensures both services remain running and restarts them if needed
+4. **s6-overlay** supervises all services and instantly restarts them if they crash
 5. Logs are written to external files and automatically rotated when they reach 10MB
 
 ### DHCP Configuration
@@ -184,12 +184,12 @@ docker build -t nextdns-dnsmasq .
 
 ## Technical Notes
 
-- **Alpine-based**: Uses Alpine Linux as base for minimal size (~5MB) and security
+- **Alpine-based**: Uses Alpine Linux as base for minimal size and security
+- **s6-overlay**: Event-driven process supervision with instant restarts (no polling loops)
 - **Version Pinning**: Both NextDNS and DNSMasq versions are explicitly pinned for reproducible builds
 - **Privilege Separation**: Services run as non-root user `dnsmasq` where possible (see Security section below)
 - **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
-- **Process Management**: Uses tini as PID 1 for proper signal handling and zombie process reaping
-- **Self-Healing**: Automatic monitoring and restart of DNS/DHCP services if they crash
+- **Self-Healing**: s6-overlay automatically restarts crashed services immediately
 - **Optimized Logging**: Structured logging with automatic rotation and compression
 - **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
 
