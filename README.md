@@ -44,6 +44,7 @@ docker run -d \
   -e NEXTDNS_ARGUMENTS="-report-client-info -cache-size 10MB -log-queries" \
   -v /path/to/your/logs:/logs \
   -v /path/to/custom/dnsmasq/config:/etc/dnsmasq.d \
+  -v /path/to/dhcp-leases:/dhcp-leases \
   --cap-add NET_ADMIN \
   --restart unless-stopped \
   marcoamtz/nextdns-dnsmasq:latest
@@ -68,6 +69,7 @@ services:
     volumes:
       - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
       - /path/to/your/logs:/logs
+      - /path/to/dhcp-leases:/dhcp-leases
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
@@ -93,6 +95,7 @@ services:
     volumes:
       - /path/to/custom/dnsmasq/config:/etc/dnsmasq.d
       - /path/to/your/logs:/logs
+      - /path/to/dhcp-leases:/dhcp-leases
     cap_add:
       - NET_ADMIN
     restart: unless-stopped
@@ -144,6 +147,16 @@ dhcp-range=192.168.1.50,192.168.1.150,12h
 dhcp-option=option:router,192.168.1.1
 dhcp-option=option:dns-server,192.168.1.1
 ```
+
+### DHCP Lease Persistence
+
+DHCP leases are stored at `/dhcp-leases/dnsmasq.leases`. To ensure leases persist across container restarts (preventing IP conflicts and maintaining stable device assignments), mount a volume to this location:
+
+```bash
+-v /path/to/dhcp-leases:/dhcp-leases
+```
+
+> **Important**: Without this volume mount, all DHCP leases will be lost when the container restarts, which can cause IP address conflicts or devices receiving different IPs than expected.
 
 ## Version Management
 

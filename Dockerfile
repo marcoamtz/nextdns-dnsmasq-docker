@@ -38,7 +38,7 @@ RUN set -ex && \
     # Install dnsmasq from edge repository
     # apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq=${DNSMASQ_VERSION} && \
     # Create necessary directories
-    mkdir -p /etc/dnsmasq.d ${LOG_DIR} && \
+    mkdir -p /etc/dnsmasq.d ${LOG_DIR} /dhcp-leases && \
     # Cleanup
     rm -rf /var/cache/apk/* /tmp/* && \
     # Verify installations
@@ -55,6 +55,9 @@ EXPOSE 53/tcp 53/udp 67/udp
 
 # Volume for logs
 VOLUME ${LOG_DIR}
+
+# Volume for DHCP leases (persists across container restarts)
+VOLUME /dhcp-leases
 
 # Enhanced health check - test both connectivity and DNS resolution
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
