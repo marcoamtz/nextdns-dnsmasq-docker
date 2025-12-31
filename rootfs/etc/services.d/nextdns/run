@@ -1,11 +1,13 @@
 #!/command/with-contenv sh
 # NextDNS service - runs as non-root user
 # Logs are handled by s6-log via the log/ subdirectory
+# Readiness notification via s6-notifyoncheck (checks port 5053)
 
 NEXTDNS_VERSION=$(nextdns version 2>/dev/null | awk '{print $NF}' || echo "unknown")
 echo "Starting NextDNS version ${NEXTDNS_VERSION}..." >&2
 
-exec s6-setuidgid dnsmasq nextdns run \
+exec s6-notifyoncheck -d -c /etc/services.d/nextdns/data/check \
+    s6-setuidgid dnsmasq nextdns run \
     ${NEXTDNS_ARGUMENTS} \
     -log-queries \
     -config ${NEXTDNS_ID} 2>&1
