@@ -1,11 +1,11 @@
-FROM alpine:3.22.2
+FROM alpine:3.23.2
 
 # Version arguments for main components
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
 ARG NEXTDNS_VERSION="1.46.0"
 # DNSMasq: Version from Alpine repository (includes -r0 suffix)
 ARG DNSMASQ_VERSION="2.91-r0"
-ARG S6_OVERLAY_VERSION="3.2.0.2"
+ARG S6_OVERLAY_VERSION="3.2.1.0"
 
 # Target architecture (automatically set by Docker buildx)
 ARG TARGETARCH
@@ -13,7 +13,7 @@ ARG TARGETARCH
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.11" \
+    version="0.0.12" \
     nextdns.version="${NEXTDNS_VERSION}" \
     dnsmasq.version="${DNSMASQ_VERSION}"
 
