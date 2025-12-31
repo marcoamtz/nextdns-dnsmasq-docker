@@ -7,11 +7,11 @@ if [ -z "${NEXTDNS_ID}" ] || [ "${NEXTDNS_ID}" = "abcdef" ]; then
     exit 1
 fi
 
-# Set permissions on volume directories
-chown dnsmasq:dnsmasq "${LOG_DIR}" /dhcp-leases
-chmod 755 "${LOG_DIR}" /dhcp-leases
+# Create s6-log directories for each service
+mkdir -p "${LOG_DIR}/nextdns" "${LOG_DIR}/dnsmasq"
 
-# Create logrotate configuration
-/create-logrotate-conf.sh
+# Set permissions on volume directories
+chown -R dnsmasq:dnsmasq "${LOG_DIR}" /dhcp-leases
+chmod 755 "${LOG_DIR}" "${LOG_DIR}/nextdns" "${LOG_DIR}/dnsmasq" /dhcp-leases
 
 echo "Initialization complete"

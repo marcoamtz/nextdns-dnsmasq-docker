@@ -1,6 +1,0 @@
-#!/command/with-contenv sh
-# Logrotate service - runs every 15 minutes
-# s6 restarts the service after each run
-
-sleep 900
-exec logrotate /etc/logrotate.d/dns-logs

@@ -52,7 +52,6 @@ RUN set -ex && \
     apk --no-cache add \
         nextdns=${NEXTDNS_VERSION} \
         ca-certificates \
-        logrotate \
         netcat-openbsd && \
     # Install dnsmasq from standard repository (creates 'dnsmasq' user/group)
     apk --no-cache add dnsmasq=${DNSMASQ_VERSION} && \
@@ -69,9 +68,8 @@ RUN set -ex && \
 
 # Copy configurations
 COPY dnsmasq.conf /etc/dnsmasq.conf
-COPY --chmod=755 create-logrotate-conf.sh /create-logrotate-conf.sh
 
-# Copy s6-overlay service definitions
+# Copy s6-overlay service definitions (includes s6-log configurations)
 COPY --chmod=755 rootfs/ /
 
 # Expose DNS and DHCP ports

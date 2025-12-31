@@ -6,7 +6,7 @@ A Docker container running NextDNS with DNSMasq as a proxy.
 
 - NextDNS client with DNSMasq proxy
 - **Version pinning** for reproducible builds and controlled updates
-- External logging with automatic rotation (logs rotate at 10MB)
+- **s6-log** for efficient logging with automatic rotation
 - Automatic service monitoring and restart with enhanced health checks
 - DHCP server functionality (optional)
 - **Alpine-based** for minimal size
@@ -21,7 +21,7 @@ This container:
 - Uses s6-overlay for instant service restarts if they crash
 - Exposes DNS services on port 53 (TCP/UDP) and DHCP on port 67 (UDP)
 - Uses **pinned versions** for NextDNS (v1.46.0) and DNSMasq (v2.91)
-- Writes logs to an external volume with automatic rotation
+- Uses s6-log for efficient logging with automatic size-based rotation
 
 The inclusion of dnsmasq alongside NextDNS is to provide DHCP server functionality, allowing this container to serve as a complete network solution for DNS filtering and IP address management.
 
@@ -104,17 +104,33 @@ services:
 
 ## Logs
 
-Logs are written to the volume mounted at `/logs`:
+Logs are written to the volume mounted at `/logs` using s6-log:
 
-- NextDNS logs: `/logs/nextdns.log`
-- DNSMasq logs: `/logs/dnsmasq.log`
+- NextDNS logs: `/logs/nextdns/current`
+- DNSMasq logs: `/logs/dnsmasq/current`
 
-Logs are automatically rotated when they reach 10MB using logrotate with the following settings:
+### Viewing Logs
 
-- Rotates when files reach 10MB
-- Keeps 3 rotated files
-- Uses compression for rotated logs
-- Uses copytruncate to handle rotation without interrupting services
+```bash
+# View current logs
+cat /logs/nextdns/current
+cat /logs/dnsmasq/current
+
+# Follow logs in real-time
+tail -f /logs/nextdns/current
+
+# From outside the container
+docker exec <container> cat /logs/nextdns/current
+```
+
+### Log Rotation
+
+Logs are automatically rotated using s6-log with the following settings:
+
+- Rotates when files reach 1MB
+- Keeps 5 rotated files (~5MB max per service)
+- Atomic rotation (no race conditions)
+- Rotated files are named with timestamps (e.g., `@400000005f5e100c...s`)
 
 ## How It Works
 
@@ -128,7 +144,7 @@ Client → dnsmasq (port 53) → NextDNS (port 5053) → NextDNS Cloud
 2. **NextDNS** connects to NextDNS servers using your configuration ID, providing DNS filtering and privacy
 3. **dnsmasq** also provides DHCP server functionality (optional) for IP address management
 4. **s6-overlay** supervises all services and instantly restarts them if they crash
-5. Logs are written to external files and automatically rotated when they reach 10MB
+5. **s6-log** captures service output and handles automatic log rotation
 
 ### DHCP Configuration
 
@@ -190,7 +206,7 @@ docker build -t nextdns-dnsmasq .
 - **Privilege Separation**: Services run as non-root user `dnsmasq` where possible (see Security section below)
 - **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
 - **Self-Healing**: s6-overlay automatically restarts crashed services immediately
-- **Optimized Logging**: Structured logging with automatic rotation and compression
+- **s6-log Integration**: Efficient logging with atomic rotation, no external dependencies
 - **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
 
 ## Security

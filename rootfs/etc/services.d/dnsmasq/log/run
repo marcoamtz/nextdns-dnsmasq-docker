@@ -1,0 +1,4 @@
+#!/command/execlineb -P
+# s6-log for dnsmasq service
+# n5 = keep 5 rotated files, s1000000 = rotate at 1MB
+s6-log -b n5 s1000000 /logs/dnsmasq/
