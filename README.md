@@ -146,6 +146,14 @@ Client → dnsmasq (port 53) → NextDNS (port 5053) → NextDNS Cloud
 4. **s6-overlay** supervises all services and instantly restarts them if they crash
 5. **s6-log** captures service output and handles automatic log rotation
 
+### Service Dependencies
+
+The container uses s6's native dependency and readiness system:
+
+1. **NextDNS** starts and signals readiness when port 5053 is listening
+2. **dnsmasq** waits for NextDNS readiness before starting (via `dependencies.d/`)
+3. This ensures DNS queries never fail due to NextDNS not being ready
+
 ### DHCP Configuration
 
 To utilize the DHCP server functionality, you'll need to add a custom dnsmasq configuration. Mount a volume to `/etc/dnsmasq.d` and include configuration files with DHCP settings such as:
@@ -173,6 +181,13 @@ This container uses **version pinning** to ensure reproducible builds. Software 
 
 - **NextDNS**: `1.46.0` (from nextdns.io repository)
 - **DNSMasq**: `2.91-r0` (from Alpine repository)
+- **s6-overlay**: `3.2.1.0` (process supervisor)
+
+All versions are also exposed as Docker labels for easy inspection:
+
+```bash
+docker inspect --format='{{json .Config.Labels}}' nextdns-dnsmasq | jq
+```
 
 ### Building with Custom Versions
 
@@ -184,6 +199,7 @@ docker build -t nextdns-dnsmasq .
 docker build \
   --build-arg NEXTDNS_VERSION=1.46.0 \
   --build-arg DNSMASQ_VERSION=2.91-r0 \
+  --build-arg S6_OVERLAY_VERSION=3.2.1.0 \
   --no-cache \
   -t nextdns-dnsmasq .
 ```
@@ -202,11 +218,12 @@ docker build -t nextdns-dnsmasq .
 
 - **Alpine-based**: Uses Alpine Linux as base for minimal size and security
 - **s6-overlay**: Event-driven process supervision with instant restarts (no polling loops)
-- **Version Pinning**: Both NextDNS and DNSMasq versions are explicitly pinned for reproducible builds
+- **Version Pinning**: NextDNS, DNSMasq, and s6-overlay versions are explicitly pinned for reproducible builds
 - **Privilege Separation**: Services run as non-root user `dnsmasq` where possible (see Security section below)
-- **Enhanced Health Check**: Tests both port connectivity and DNS resolution functionality
+- **Health Check**: Tests DNS port connectivity every 60 seconds
 - **Self-Healing**: s6-overlay automatically restarts crashed services immediately
 - **s6-log Integration**: Efficient logging with atomic rotation, no external dependencies
+- **Service Dependencies**: dnsmasq waits for NextDNS readiness via s6's native dependency system
 - **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
 
 ## Security
