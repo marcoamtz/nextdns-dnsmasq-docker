@@ -20,7 +20,7 @@ This container:
 - Runs dnsmasq as a local DNS server and DHCP server
 - Uses s6-overlay for instant service restarts if they crash
 - Exposes DNS services on port 53 (TCP/UDP) and DHCP on port 67 (UDP)
-- Uses **pinned versions** for NextDNS (v1.46.0) and DNSMasq (v2.91)
+- Uses **pinned versions** for NextDNS, DNSMasq, and s6-overlay
 - Uses s6-log for efficient logging with automatic size-based rotation
 
 The inclusion of dnsmasq alongside NextDNS is to provide DHCP server functionality, allowing this container to serve as a complete network solution for DNS filtering and IP address management.
@@ -179,11 +179,11 @@ DHCP leases are stored at `/dhcp-leases/dnsmasq.leases`. To ensure leases persis
 
 This container uses **version pinning** to ensure reproducible builds. Software versions are controlled via ARG variables in the Dockerfile:
 
-- **NextDNS**: `1.46.0` (from nextdns.io repository)
-- **DNSMasq**: `2.91-r0` (from Alpine repository)
-- **s6-overlay**: `3.2.1.0` (process supervisor)
+- **NextDNS**: from nextdns.io repository
+- **DNSMasq**: from Alpine repository
+- **s6-overlay**: process supervisor
 
-All versions are also exposed as Docker labels for easy inspection:
+Check the Dockerfile for current pinned versions. All versions are also exposed as Docker labels for easy inspection:
 
 ```bash
 docker inspect --format='{{json .Config.Labels}}' nextdns-dnsmasq | jq
@@ -192,17 +192,14 @@ docker inspect --format='{{json .Config.Labels}}' nextdns-dnsmasq | jq
 ### Building with Custom Versions
 
 ```bash
-# Standard build with pinned versions
+# Standard build (uses pinned versions from Dockerfile)
 docker build -t nextdns-dnsmasq .
 
-# Build with custom versions
-docker build \
-  --build-arg NEXTDNS_VERSION=1.46.0 \
-  --build-arg DNSMASQ_VERSION=2.91-r0 \
-  --build-arg S6_OVERLAY_VERSION=3.2.1.0 \
-  --no-cache \
-  -t nextdns-dnsmasq .
+# Override a specific version
+docker build --build-arg DNSMASQ_VERSION=x.xx-r0 -t nextdns-dnsmasq .
 ```
+
+Available build args: `NEXTDNS_VERSION`, `DNSMASQ_VERSION`, `S6_OVERLAY_VERSION`.
 
 ### Building the Container
 
