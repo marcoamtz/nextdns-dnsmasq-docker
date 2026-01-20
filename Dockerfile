@@ -1,6 +1,7 @@
 FROM alpine:3.23.2
 
 # Version arguments for main components
+ARG VERSION="dev"
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
 ARG NEXTDNS_VERSION="1.46.0"
 # DNSMasq: Version from Alpine repository (includes -r0 suffix)
@@ -13,7 +14,7 @@ ARG TARGETARCH
 # Add labels as per best practices
 LABEL maintainer="Marco Martinez" \
     description="NextDNS with DNSMasq proxy" \
-    version="0.0.12" \
+    version="${VERSION}" \
     nextdns.version="${NEXTDNS_VERSION}" \
     dnsmasq.version="${DNSMASQ_VERSION}" \
     s6-overlay.version="${S6_OVERLAY_VERSION}"
