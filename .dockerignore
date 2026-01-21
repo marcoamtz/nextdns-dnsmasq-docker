@@ -1,0 +1,24 @@
+# Git
+.git
+.gitignore
+
+# GitHub
+.github
+
+# Documentation
+*.md
+LICENSE
+
+# Environment files
+.env*
+
+# Local directories (created by docker-compose)
+logs/
+dhcp-leases/
+config/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo

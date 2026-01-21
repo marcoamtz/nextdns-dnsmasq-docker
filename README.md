@@ -7,7 +7,7 @@ A Docker container running NextDNS with DNSMasq as a proxy.
 - NextDNS client with DNSMasq proxy
 - **Version pinning** for reproducible builds and controlled updates
 - **s6-log** for efficient logging with automatic rotation
-- Automatic service monitoring and restart with enhanced health checks
+- Automatic service monitoring and restart with health checks
 - DHCP server functionality (optional)
 - **Alpine-based** for minimal size
 - **s6-overlay** for proper process supervision with instant restarts

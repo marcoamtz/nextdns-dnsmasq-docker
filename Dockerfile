@@ -83,7 +83,7 @@ VOLUME ${LOG_DIR}
 # Volume for DHCP leases (persists across container restarts)
 VOLUME /dhcp-leases
 
-# Enhanced health check - test both connectivity and DNS resolution
+# Health check - test DNS port connectivity
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
     CMD nc -z localhost 53 || exit 1
 
