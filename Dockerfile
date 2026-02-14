@@ -83,9 +83,11 @@ VOLUME ${LOG_DIR}
 # Volume for DHCP leases (persists across container restarts)
 VOLUME /dhcp-leases
 
-# Health check - test DNS port connectivity
+# Health check - verify dnsmasq is running and NextDNS is listening
+# Uses process check for dnsmasq (supports any listen-address config)
+# and port check for NextDNS (always on 127.0.0.1:5053)
 HEALTHCHECK --interval=60s --timeout=5s --start-period=10s --retries=3 \
-    CMD nc -z localhost 53 || exit 1
+    CMD pidof dnsmasq > /dev/null && nc -z 127.0.0.1 5053 || exit 1
 
 # s6-overlay entrypoint
 ENTRYPOINT ["/init"]
