@@ -1,4 +1,4 @@
-FROM alpine:3.23.3
+FROM alpine:3.23.4
 
 # Version arguments for main components
 ARG VERSION="dev"
@@ -6,7 +6,7 @@ ARG VERSION="dev"
 ARG NEXTDNS_VERSION="1.47.2"
 # DNSMasq: Version from Alpine edge repository (includes -r0 suffix)
 ARG DNSMASQ_VERSION="2.92-r0"
-ARG S6_OVERLAY_VERSION="3.2.1.0"
+ARG S6_OVERLAY_VERSION="3.2.2.0"
 
 # Target architecture (automatically set by Docker buildx)
 ARG TARGETARCH
