@@ -23,7 +23,8 @@ jobs:
       - name: Get latest tag and increment version
         id: version
         run: |
-          LATEST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "0.0.0")
+          LATEST_TAG=$(git tag --sort=-v:refname | head -n1)
+          LATEST_TAG=${LATEST_TAG:-0.0.0}
           echo "Latest tag: $LATEST_TAG"
           MAJOR=$(echo "$LATEST_TAG" | cut -d. -f1)
           MINOR=$(echo "$LATEST_TAG" | cut -d. -f2)
