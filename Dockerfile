@@ -5,7 +5,7 @@ ARG VERSION="dev"
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
 ARG NEXTDNS_VERSION="1.47.2"
 # DNSMasq: Version from Alpine edge repository (includes -r0 suffix)
-ARG DNSMASQ_VERSION="2.92-r0"
+ARG DNSMASQ_VERSION="2.92_p2-r0"
 ARG S6_OVERLAY_VERSION="3.2.2.0"
 
 # Target architecture (automatically set by Docker buildx)
