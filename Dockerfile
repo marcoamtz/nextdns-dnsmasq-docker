@@ -3,7 +3,7 @@ FROM alpine:3.23.4
 # Version arguments for main components
 ARG VERSION="dev"
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
-ARG NEXTDNS_VERSION="1.47.2"
+ARG NEXTDNS_VERSION="1.47.3"
 # DNSMasq: Version from Alpine edge repository (includes -r0 suffix)
 ARG DNSMASQ_VERSION="2.92_p2-r0"
 ARG S6_OVERLAY_VERSION="3.2.3.0"
