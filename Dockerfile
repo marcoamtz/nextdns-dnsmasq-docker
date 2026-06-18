@@ -1,10 +1,10 @@
-FROM alpine:3.23.4
+FROM alpine:3.24.1
 
 # Version arguments for main components
 ARG VERSION="dev"
 # NextDNS: Version from nextdns.io repository (no Alpine suffix)
 ARG NEXTDNS_VERSION="1.47.3"
-# DNSMasq: Version from Alpine edge repository (includes -r0 suffix)
+# DNSMasq: Version from Alpine base repository (includes -r0 suffix)
 ARG DNSMASQ_VERSION="2.92_p2-r0"
 ARG S6_OVERLAY_VERSION="3.2.3.0"
 
@@ -47,18 +47,14 @@ RUN set -ex && \
     # Add NextDNS repository
     wget -qO /etc/apk/keys/nextdns.pub https://repo.nextdns.io/nextdns.pub && \
     echo "https://repo.nextdns.io/apk" >> /etc/apk/repositories && \
-    # Alpine edge repository (uncomment to use newer dnsmasq versions)
-    echo "https://dl-cdn.alpinelinux.org/alpine/edge/main" >> /etc/apk/repositories && \
     # Update and install packages
     apk update && \
     apk --no-cache add \
         nextdns=${NEXTDNS_VERSION} \
         ca-certificates \
         netcat-openbsd && \
-    # Install dnsmasq from standard repository (creates 'dnsmasq' user/group)
-    # apk --no-cache add dnsmasq=${DNSMASQ_VERSION} && \
-    # Install dnsmasq from edge repository (uncomment to use instead of standard)
-    apk --no-cache add --repository https://dl-cdn.alpinelinux.org/alpine/edge/main dnsmasq=${DNSMASQ_VERSION} && \
+    # Install dnsmasq from Alpine base repository (creates 'dnsmasq' user/group)
+    apk --no-cache add dnsmasq=${DNSMASQ_VERSION} && \
     # Create necessary directories
     mkdir -p /etc/dnsmasq.d ${LOG_DIR} /dhcp-leases && \
     chown dnsmasq:dnsmasq ${LOG_DIR} /dhcp-leases && \

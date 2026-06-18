@@ -221,7 +221,7 @@ docker build -t nextdns-dnsmasq .
 - **Self-Healing**: s6-overlay automatically restarts crashed services immediately
 - **s6-log Integration**: Efficient logging with atomic rotation, no external dependencies
 - **Service Dependencies**: dnsmasq waits for NextDNS readiness via s6's native dependency system
-- **Repository Flexibility**: Supports both standard Alpine and edge repositories for DNSMasq
+- **Reproducible Repositories**: All packages installed from pinned Alpine base and NextDNS repositories
 
 ## Security
 
